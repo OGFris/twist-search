@@ -14,12 +14,12 @@ func TestNewClient(t *testing.T) {
 		panic(err)
 	}
 
-	err = NewClient(os.Getenv("URL"), os.Getenv("CLIENT_USERNAME"), os.Getenv("CLIENT_PASSWORD"))
+	client, err := NewClient(os.Getenv("URL"), os.Getenv("CLIENT_USERNAME"), os.Getenv("CLIENT_PASSWORD"))
 	if err != nil {
 		panic(err)
 	}
 
-	_, _, err = Client.Ping(os.Getenv("URL")).Do(context.Background())
+	_, _, err = client.Ping(os.Getenv("URL")).Do(context.Background())
 	if err != nil {
 		panic(err)
 	}

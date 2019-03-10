@@ -5,8 +5,6 @@ import (
 	"net/http"
 )
 
-var Client *elastic.Client
-
 type Transport struct {
 	Username string
 	Password string
@@ -19,10 +17,8 @@ func (t *Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // NewClient creates a new client to the variable Client.
-func NewClient(url, username, password string) error {
-	var err error
-
-	Client, err = elastic.NewClient(
+func NewClient(url, username, password string) (client *elastic.Client, err error) {
+	client, err = elastic.NewClient(
 		elastic.SetHttpClient(&http.Client{Transport: &Transport{
 			Username: username,
 			Password: password,
@@ -33,5 +29,5 @@ func NewClient(url, username, password string) error {
 		elastic.SetHealthcheckTimeoutStartup(0),
 	)
 
-	return err
+	return
 }

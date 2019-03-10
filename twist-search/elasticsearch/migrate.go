@@ -9,16 +9,17 @@ import (
 )
 
 // Migrate gets all animes from mysql database and add them to elasticsearch.
-func Migrate(instance *gorm.DB) {
+func Migrate(instance *gorm.DB, url, username, password string) {
 	animes := db.FindAllAnimes(instance)
+	client, err := NewClient(url, username, password)
 
-	exist, err := Client.IndexExists("animes").Do(context.Background())
+	exist, err := client.IndexExists("animes").Do(context.Background())
 	if err != nil {
 		panic(err)
 	}
 
 	if !exist {
-		result, err := Client.CreateIndex("animes").Do(context.Background())
+		result, err := client.CreateIndex("animes").Do(context.Background())
 		if err != nil {
 			panic(err)
 		}
@@ -29,7 +30,7 @@ func Migrate(instance *gorm.DB) {
 	}
 
 	for _, anime := range animes {
-		_, err := Client.Index().
+		_, err := client.Index().
 			Index("animes").
 			Type("_doc").
 			Id(fmt.Sprint(anime.ID)).
