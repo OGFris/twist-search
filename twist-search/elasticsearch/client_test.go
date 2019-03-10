@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"context"
 	"github.com/joho/godotenv"
 	"os"
 	"testing"
@@ -14,6 +15,11 @@ func TestNewClient(t *testing.T) {
 	}
 
 	err = NewClient(os.Getenv("URL"), os.Getenv("CLIENT_USERNAME"), os.Getenv("CLIENT_PASSWORD"))
+	if err != nil {
+		panic(err)
+	}
+
+	_, _, err = Client.Ping(os.Getenv("URL")).Do(context.Background())
 	if err != nil {
 		panic(err)
 	}
