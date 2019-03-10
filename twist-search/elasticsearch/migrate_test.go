@@ -12,5 +12,10 @@ func TestMigrate(t *testing.T) {
 		panic(err)
 	}
 
-	Migrate(db.Instance, os.Getenv("URL"), os.Getenv("CLIENT_USERNAME"), os.Getenv("CLIENT_PASSWORD"))
+	client, err := NewClient(os.Getenv("URL"), os.Getenv("CLIENT_USERNAME"), os.Getenv("CLIENT_PASSWORD"))
+	if err != nil {
+		panic(err)
+	}
+
+	Migrate(db.Instance, client)
 }

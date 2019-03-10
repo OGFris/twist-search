@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/nallown/animetwist-api/db"
+	"github.com/olivere/elastic"
 )
 
 // Migrate gets all animes from mysql database and add them to elasticsearch.
-func Migrate(instance *gorm.DB, url, username, password string) {
+func Migrate(instance *gorm.DB, client *elastic.Client) {
 	animes := db.FindAllAnimes(instance)
-	client, err := NewClient(url, username, password)
 
 	exist, err := client.IndexExists("animes").Do(context.Background())
 	if err != nil {
@@ -29,17 +29,21 @@ func Migrate(instance *gorm.DB, url, username, password string) {
 		}
 	}
 
+	bulk := client.Bulk().Index("animes").Type("_doc")
 	for _, anime := range animes {
-		_, err := client.Index().
-			Index("animes").
-			Type("_doc").
-			Id(fmt.Sprint(anime.ID)).
-			BodyJson(&anime).
-			Refresh("true").
-			Do(context.Background())
+		bulk.Add(elastic.NewBulkIndexRequest().Index("animes").Type("_doc").Id(fmt.Sprint(anime.ID)).Doc(&anime))
 
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	response, err := bulk.Refresh("true").Do(context.Background())
+	if err != nil {
+		panic(err)
+	}
+
+	if response.Errors {
+		panic("bulk response returned an error or more")
 	}
 }
