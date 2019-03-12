@@ -9,6 +9,13 @@ import (
 	"github.com/olivere/elastic"
 )
 
+type ElasticAnime struct {
+	Title    string `json:"title"`
+	AltTitle string `json:"alt_title"`
+	Season   int    `json:"season"`
+	Ongoing  int    `json:"ongoing"`
+}
+
 // Migrate gets all animes from mysql database and add them to elasticsearch.
 func Migrate(instance *gorm.DB, client *elastic.Client) {
 	animes := db.FindAllAnimes(instance)
@@ -31,7 +38,13 @@ func Migrate(instance *gorm.DB, client *elastic.Client) {
 
 	bulk := client.Bulk().Index("animes").Type("_doc")
 	for _, anime := range animes {
-		bulk.Add(elastic.NewBulkIndexRequest().Index("animes").Type("_doc").Id(fmt.Sprint(anime.ID)).Doc(&anime))
+		bulk.Add(elastic.NewBulkIndexRequest().Index("animes").Type("_doc").Id(fmt.Sprint(anime.ID)).
+			Doc(&ElasticAnime{
+				Title:    anime.Title,
+				AltTitle: anime.Title,
+				Season:   anime.Season,
+				Ongoing:  anime.Ongoing,
+			}))
 
 		if err != nil {
 			panic(err)
