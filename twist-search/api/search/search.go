@@ -8,10 +8,12 @@ import (
 )
 
 // Search is the api route function for /api/search which search for animes using the given query on elasticsearch.
-func Search(w http.ResponseWriter, r *http.Request, client *elastic.Client) {
+func Search(w http.ResponseWriter, r *http.Request) {
+	client := r.Context().Value("elastic_client").(*elastic.Client)
+
 	results, err := client.Search().
 		Index("animes").
-		Query(elastic.NewMultiMatchQuery(r.FormValue("q"), "title", "alt_title")).
+		Query(elastic.NewMultiMatchQuery(r.URL.Query().Get("q"), "title", "alt_title")).
 		Do(context.Background())
 
 	if err != nil {

@@ -14,6 +14,10 @@ type ElasticAnime struct {
 	AltTitle string `json:"alt_title"`
 	Season   int    `json:"season"`
 	Ongoing  int    `json:"ongoing"`
+	Slug     string `json:"slug"`
+	SlugID   uint   `json:"slug_id"`
+	HbID     int    `json:"hb_id"`
+	MalID    int    `json:"mal_id"`
 }
 
 // Migrate gets all animes from mysql database and add them to elasticsearch.
@@ -41,9 +45,13 @@ func Migrate(instance *gorm.DB, client *elastic.Client) {
 		bulk.Add(elastic.NewBulkIndexRequest().Index("animes").Type("_doc").Id(fmt.Sprint(anime.ID)).
 			Doc(&ElasticAnime{
 				Title:    anime.Title,
-				AltTitle: anime.Title,
+				AltTitle: anime.AltTitle,
 				Season:   anime.Season,
 				Ongoing:  anime.Ongoing,
+				Slug:     anime.Slug.Slug,
+				SlugID:   anime.Slug.ID,
+				HbID:     anime.HbID,
+				MalID:    anime.MalID,
 			}))
 
 		if err != nil {
