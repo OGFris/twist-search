@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"github.com/OGFris/twist-search/api/search"
 	"github.com/OGFris/twist-search/elasticsearch"
@@ -31,8 +30,7 @@ func main() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/api/search", func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), "elastic_client", &client)
-		search.Search(w, r.WithContext(ctx))
+		search.Search(w, r, client)
 	})
 
 	err = http.ListenAndServe(":8080", router)
