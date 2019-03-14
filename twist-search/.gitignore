@@ -7,5 +7,6 @@
 *.out
 *.xml
 *.db
+*.json
 .env
 .idea/*
