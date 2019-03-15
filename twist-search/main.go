@@ -5,6 +5,7 @@ import (
 	"github.com/OGFris/twist-search/api/search"
 	"github.com/OGFris/twist-search/elasticsearch"
 	"github.com/gorilla/mux"
+	"github.com/nallown/animetwist-api/db"
 	"net/http"
 )
 
@@ -22,6 +23,11 @@ func init() {
 }
 
 func main() {
+	err := db.InitDatabase()
+	if err != nil {
+		panic(err)
+	}
+
 	client, err := elasticsearch.NewClient(Url, Username, Password)
 	if err != nil {
 		panic(err)

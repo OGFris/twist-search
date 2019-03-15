@@ -6,7 +6,6 @@ import (
 	"github.com/nallown/animetwist-api/db"
 	"github.com/olivere/elastic"
 	"net/http"
-	"strings"
 )
 
 // Search is the api route function for /api/search which search for animes using the given query on elasticsearch.
@@ -40,6 +39,12 @@ func Search(w http.ResponseWriter, r *http.Request, client *elastic.Client) {
 			sources = append(sources, anime)
 		}
 
+		if len(sources) == 0 {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
 		err = json.NewEncoder(w).Encode(sources)
 		if err != nil {
 			panic(err)
@@ -51,21 +56,33 @@ func Search(w http.ResponseWriter, r *http.Request, client *elastic.Client) {
 			animes  []db.Anime
 		)
 
-		db.Instance.Preload("Slug").Find(&animes, &db.Anime{Hidden: 0})
+		db.Instance.Preload("Slug").
+			Where("title LIKE ?", "%"+q+"%").
+			Or("alt_title LIKE ?", "%"+q+"%").
+			Find(&animes, &db.Anime{Hidden: 0})
 
 		for _, anime := range animes {
-			if strings.Contains(anime.Title, q) || strings.Contains(anime.AltTitle, q) {
-				results = append(results, elasticsearch.ElasticAnime{
-					Title:    anime.Title,
-					AltTitle: anime.AltTitle,
-					Season:   anime.Season,
-					Ongoing:  anime.Ongoing,
-					Slug:     anime.Slug.Slug,
-					SlugID:   anime.Slug.ID,
-					HbID:     anime.HbID,
-					MalID:    anime.MalID,
-				})
-			}
+			results = append(results, elasticsearch.ElasticAnime{
+				Title:    anime.Title,
+				AltTitle: anime.AltTitle,
+				Season:   anime.Season,
+				Ongoing:  anime.Ongoing,
+				Slug:     anime.Slug.Slug,
+				SlugID:   anime.Slug.ID,
+				HbID:     anime.HbID,
+				MalID:    anime.MalID,
+			})
+		}
+
+		if len(results) == 0 {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+
+		err := json.NewEncoder(w).Encode(results)
+		if err != nil {
+			panic(err)
 		}
 	}
 }
