@@ -30,7 +30,20 @@ func Migrate(instance *gorm.DB, client *elastic.Client) {
 	}
 
 	if !exist {
-		result, err := client.CreateIndex("animes").Do(context.Background())
+		body := `
+		{
+			"settings" : {
+				"analysis" : {
+					"analyzer" : {
+						"default" : {
+							"tokenizer" : "standard",
+								"filter" : ["asciifolding", "lowercase"]
+						}
+					}
+				}
+			}
+		}`
+		result, err := client.CreateIndex("animes").BodyString(body).Do(context.Background())
 		if err != nil {
 			panic(err)
 		}

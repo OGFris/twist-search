@@ -58,4 +58,38 @@ func TestSearch(t *testing.T) {
 	utils.Assert(t, outputAnimes[0].MalID, anime.MalID)
 	utils.Assert(t, outputAnimes[0].Ongoing, anime.Ongoing)
 	utils.Assert(t, outputAnimes[0].Season, anime.Season)
+
+	urlReplaceLatin := strings.NewReplacer(" ", "%20", "e", "é")
+
+	resp, err = http.Get("http://localhost:8080/api/search?q=" + urlReplaceLatin.Replace(anime.Title))
+	if err != nil {
+		panic(err)
+	}
+
+	defer func() {
+		err := resp.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	utils.Assert(t, resp.StatusCode, http.StatusOK)
+
+	bytes, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.Unmarshal(bytes, &outputAnimes)
+	if err != nil {
+		panic(err)
+	}
+
+	utils.Assert(t, len(outputAnimes), 1)
+	utils.Assert(t, outputAnimes[0].Title, anime.Title)
+	utils.Assert(t, outputAnimes[0].AltTitle, anime.AltTitle)
+	utils.Assert(t, outputAnimes[0].HbID, anime.HbID)
+	utils.Assert(t, outputAnimes[0].MalID, anime.MalID)
+	utils.Assert(t, outputAnimes[0].Ongoing, anime.Ongoing)
+	utils.Assert(t, outputAnimes[0].Season, anime.Season)
 }
