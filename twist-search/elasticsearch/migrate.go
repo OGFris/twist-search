@@ -43,6 +43,7 @@ func Migrate(instance *gorm.DB, client *elastic.Client) {
 				}
 			}
 		}`
+
 		result, err := client.CreateIndex("animes").BodyString(body).Do(context.Background())
 		if err != nil {
 			panic(err)
@@ -51,6 +52,39 @@ func Migrate(instance *gorm.DB, client *elastic.Client) {
 		if !result.Acknowledged {
 			panic(errors.New("acknowledged should be true but returned false"))
 		}
+	} else {
+		resp, err := client.DeleteIndex("animes").Do(context.Background())
+		if err != nil {
+			panic(err)
+		}
+
+		if !resp.Acknowledged {
+			panic(errors.New("acknowledged should be true but returned false"))
+		}
+
+		body := `
+		{
+			"settings" : {
+				"analysis" : {
+					"analyzer" : {
+						"default" : {
+							"tokenizer" : "standard",
+								"filter" : ["asciifolding", "lowercase"]
+						}
+					}
+				}
+			}
+		}`
+
+		result, err := client.CreateIndex("animes").BodyString(body).Do(context.Background())
+		if err != nil {
+			panic(err)
+		}
+
+		if !result.Acknowledged {
+			panic(errors.New("acknowledged should be true but returned false"))
+		}
+
 	}
 
 	bulk := client.Bulk().Index("animes").Type("_doc")
